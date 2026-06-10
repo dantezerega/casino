@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+
+/* Stake-inspired dark palette exposed as Tailwind theme tokens (v4 @theme). */
+@theme {
+  --color-bg: #0f1923;
+  --color-panel: #1a2c38;
+  --color-panel-light: #213743;
+  --color-tile: #2f4553;
+  --color-tile-hover: #557086;
+  --color-accent: #00e701;
+  --color-accent-dim: #00b800;
+  --color-danger: #ed4163;
+  --color-gold: #ffd700;
+  --color-muted: #557086;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: #fff;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
