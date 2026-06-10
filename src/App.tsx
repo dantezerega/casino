@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { LobbyPage } from '@/pages/LobbyPage';
 import { GamePage } from '@/pages/GamePage';
 import { BlackjackPage } from '@/pages/BlackjackPage';
+import { PlinkoPage } from '@/pages/PlinkoPage';
 
 const router = createBrowserRouter([
   {
@@ -11,6 +12,7 @@ const router = createBrowserRouter([
       { path: '/', element: <LobbyPage /> },
       { path: '/mines', element: <GamePage /> },
       { path: '/blackjack', element: <BlackjackPage /> },
+      { path: '/plinko', element: <PlinkoPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

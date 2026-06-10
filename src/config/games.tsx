@@ -54,7 +54,7 @@ export const GAMES: GameMeta[] = [
     description: 'Drop the ball and watch it bounce into a payout.',
     icon: <PlinkoGlyph />,
     accent: 'text-[#00c2ff]',
-    status: 'soon',
+    status: 'live',
   },
   {
     id: 'dice',
