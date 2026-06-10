@@ -116,6 +116,11 @@ const SOUNDS = {
   lose: () => arp([440, 349], 0.12, 0.2, 0.3, 'tri'),
   push: () => tone({ f0: 440, dur: 0.2, vol: 0.22 }),
   blackjack: () => arp([523, 659, 784, 1047, 1319], 0.07, 0.16, 0.3, 'tri'),
+  // Plinko
+  'ball-drop': () => mix(noise({ dur: 0.12, vol: 0.2, r: 0.1, lp: 0.4 }), tone({ f0: 700, f1: 300, dur: 0.12, type: 'tri', vol: 0.22 })),
+  'peg-hit': () => tone({ f0: 1400, dur: 0.03, type: 'square', vol: 0.12, r: 0.02 }),
+  'slot-land': () => mix(noise({ dur: 0.08, vol: 0.3, r: 0.06, lp: 0.2 }), tone({ f0: 200, dur: 0.1, type: 'tri', vol: 0.2 })),
+  'big-win': () => arp([523, 659, 784, 1047, 1319, 1568], 0.07, 0.2, 0.32, 'tri'),
   // Casino
   notification: () => arp([880, 1320], 0.1, 0.12, 0.25, 'sine'),
   bonus: () => arp([523, 659, 784, 1047, 1319], 0.06, 0.14, 0.28, 'sine'),

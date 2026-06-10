@@ -1,8 +1,11 @@
 import { PlinkoBoard } from '@/components/plinko/PlinkoBoard';
 import { PlinkoControls } from '@/components/plinko/PlinkoControls';
 import { PlinkoResult } from '@/components/plinko/PlinkoResult';
+import { usePlinkoAudio } from '@/hooks/usePlinkoAudio';
 
 export function PlinkoPage() {
+  usePlinkoAudio();
+
   return (
     <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col gap-4 p-4 sm:p-6">
       <header className="flex items-center gap-2">

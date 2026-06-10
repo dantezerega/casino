@@ -1,6 +1,8 @@
+import { useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { PlinkoPath, PlinkoRows } from '@/game/plinko/types';
-import { BALL_R, ballWaypoints } from '@/components/plinko/geometry';
+import { useSound } from '@/hooks/useSound';
+import { BALL_R, PEG_GAP_Y, TOP, ballWaypoints } from '@/components/plinko/geometry';
 
 export function PlinkoBall({
   path,
@@ -12,6 +14,8 @@ export function PlinkoBall({
   onLand: () => void;
 }) {
   const reduce = useReducedMotion();
+  const { play } = useSound();
+  const lastLevel = useRef(0);
   const points = ballWaypoints(path, rows);
   const last = points[points.length - 1];
 
@@ -44,6 +48,14 @@ export function PlinkoBall({
         duration: stepDuration * (points.length - 1),
         ease: 'easeIn',
         times: points.map((_, i) => i / (points.length - 1)),
+      }}
+      onUpdate={(latest) => {
+        const cy = latest.cy as number;
+        const level = Math.round((cy - TOP) / PEG_GAP_Y);
+        if (level > lastLevel.current && level <= rows) {
+          lastLevel.current = level;
+          play('peg-hit');
+        }
       }}
       onAnimationComplete={onLand}
     />

@@ -30,6 +30,11 @@ import win from './sounds/win.wav';
 import lose from './sounds/lose.wav';
 import push from './sounds/push.wav';
 import blackjack from './sounds/blackjack.wav';
+// Plinko
+import ballDrop from './sounds/ball-drop.wav';
+import pegHit from './sounds/peg-hit.wav';
+import slotLand from './sounds/slot-land.wav';
+import bigWin from './sounds/big-win.wav';
 // Casino
 import notification from './sounds/notification.wav';
 import bonus from './sounds/bonus.wav';
@@ -55,6 +60,11 @@ export const SOUND_MANIFEST: Record<SoundName, SoundDef> = {
   lose: { src: lose, volume: 0.8 },
   push: { src: push, volume: 0.7 },
   blackjack: { src: blackjack, volume: 1 },
+
+  'ball-drop': { src: ballDrop, volume: 0.6 },
+  'peg-hit': { src: pegHit, volume: 0.35 },
+  'slot-land': { src: slotLand, volume: 0.7 },
+  'big-win': { src: bigWin, volume: 1 },
 
   notification: { src: notification, volume: 0.7 },
   bonus: { src: bonus, volume: 0.8 },

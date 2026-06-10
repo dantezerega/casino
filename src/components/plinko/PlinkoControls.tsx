@@ -59,7 +59,7 @@ function RiskSelector({ locked }: { locked: boolean }) {
   return (
     <div>
       <span className="mb-1.5 block text-xs font-medium text-muted">Risk</span>
-      <div className="grid grid-cols-3 gap-1.5">
+      <div role="group" aria-label="Risk" className="grid grid-cols-3 gap-1.5">
         {PLINKO_RISKS.map((r) => (
           <button
             key={r}
@@ -86,7 +86,7 @@ function RowsSelector({ locked }: { locked: boolean }) {
   return (
     <div>
       <span className="mb-1.5 block text-xs font-medium text-muted">Rows</span>
-      <div className="grid grid-cols-3 gap-1.5">
+      <div role="group" aria-label="Rows" className="grid grid-cols-3 gap-1.5">
         {PLINKO_ROWS.map((n) => (
           <button
             key={n}

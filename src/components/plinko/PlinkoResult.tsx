@@ -21,6 +21,8 @@ export function PlinkoResult() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9 }}
           transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+          role="status"
+          aria-live="polite"
           className={`flex items-center justify-between rounded-md px-3 py-2 text-sm font-semibold ${
             win
               ? 'bg-accent/15 text-accent'
