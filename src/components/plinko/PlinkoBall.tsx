@@ -42,46 +42,52 @@ export function PlinkoBall({
   const reduce = useReducedMotion();
   const { play } = useSound();
   const ref = useRef<SVGCircleElement | null>(null);
+
+  const onLandRef = useRef(onLand);
+  onLandRef.current = onLand;
+  const playRef = useRef(play);
+  playRef.current = play;
+
   const pts = ballWaypoints(path, rows);
-  const last = pts[pts.length - 1];
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    const points = ballWaypoints(path, rows);
+    const last = points[points.length - 1];
+
     if (reduce) {
       el.setAttribute('cx', String(last.x));
       el.setAttribute('cy', String(last.y));
-      onLand();
+      onLandRef.current();
       return;
     }
 
     const segments = buildSegments(path, rows);
     let seg = 0;
-    let segStart = 0;
+    let segStartTs = 0;
     let raf = 0;
     let done = false;
 
     const tick = (now: number) => {
-      if (segStart === 0) segStart = now;
+      if (segStartTs === 0) segStartTs = now;
       const s = segments[seg];
-      const t = Math.min((now - segStart) / 1000, s.duration);
-      const x = s.x0 + (s.x1 - s.x0) * (t / s.duration);
-      const y = s.y0 + s.vy0 * t + 0.5 * GRAVITY * t * t;
-      el.setAttribute('cx', String(x));
-      el.setAttribute('cy', String(y));
+      const t = Math.min((now - segStartTs) / 1000, s.duration);
+      el.setAttribute('cx', String(s.x0 + (s.x1 - s.x0) * (t / s.duration)));
+      el.setAttribute('cy', String(s.y0 + s.vy0 * t + 0.5 * GRAVITY * t * t));
 
       if (t >= s.duration) {
+        el.setAttribute('cx', String(s.x1));
+        el.setAttribute('cy', String(s.y1));
         seg += 1;
-        segStart = now;
+        segStartTs = 0;
         if (seg < segments.length) {
-          if (seg < rows + 1) play('peg-hit');
+          if (seg < rows + 1) playRef.current('peg-hit');
           raf = requestAnimationFrame(tick);
         } else if (!done) {
           done = true;
-          el.setAttribute('cx', String(s.x1));
-          el.setAttribute('cy', String(s.y1));
-          onLand();
+          onLandRef.current();
         }
         return;
       }
@@ -90,7 +96,8 @@ export function PlinkoBall({
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [path, rows, reduce, onLand, play, last.x, last.y]);
+    // Run the sim exactly once per ball (path/rows are fixed for this id).
+  }, [path, rows, reduce]);
 
   return <circle ref={ref} cx={pts[0].x} cy={pts[0].y} r={BALL_R} fill="var(--color-gold)" />;
 }
