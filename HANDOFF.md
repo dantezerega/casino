@@ -8,15 +8,16 @@ This is a **provably-fair play-money casino** (Vite + React 18 + TypeScript stri
 
 ## Current state (all green)
 
-- **158 tests pass** (`npm test`). Build green (`npm run build`).
-- Two complete games: **Mines** and **Blackjack**, a **lobby** with sidebar nav (desktop rail + mobile drawer), and a **centralized audio system**.
-- Coming-soon placeholders: Crash, Dice, Plinko (registry entries only, `status: 'soon'`).
+- **211 tests pass** (`npm test`). Build green (`npm run build`).
+- Three complete games: **Mines**, **Blackjack**, **Plinko**, a **lobby** with sidebar nav (desktop rail + mobile drawer), and a **centralized audio system**.
+- Coming-soon placeholders: Crash, Dice (registry entries only, `status: 'soon'`).
 
 ### What's done, in order built
 1. Mines: engine (`provablyFair`, `multiplier`, `minesEngine`), store, UI, animations, tests.
 2. Casino shell: React Router, lobby, sidebar nav, reusable `GameCard` + game registry.
 3. Blackjack: engine (`game/blackjack/*`), store (shared wallet), table UI, animations, tests.
-4. Audio: `AudioManager` (Web Audio singleton), persisted `soundStore`, manifest + 20 SFX, `useSound`, animation-synced + state-driven triggers in both games, sidebar settings panel, tests.
+4. Audio: `AudioManager` (Web Audio singleton), persisted `soundStore`, manifest + 24 SFX, `useSound`, animation-synced + state-driven triggers in every game, sidebar settings panel, tests.
+5. Plinko: pure engine (`game/plinko/*`), multi-ball store (shared wallet), real-physics board UI, route + registry, audio. See the Plinko section below.
 
 ---
 
@@ -52,9 +53,15 @@ src/
 │       ├── cardUtils.ts      rankValue, calculateHandValue (ace logic), isBlackjack, isBust
 │       ├── deck.ts           createDeck, shuffleDeck(deck, rng?), dealCard
 │       └── blackjackEngine.ts dealInitial, dealerPlay, determineWinner, resolvePayout, canDoubleDown
+│   └── plinko/
+│       ├── types.ts          PlinkoRows(8|12|16)/PlinkoRisk(low|med|high)/Direction/Path/Round/Result
+│       ├── payoutTables.ts   PAYOUTS[risk][rows] (edge baked in), getMultipliers, getSlotMultiplier
+│       ├── pathGenerator.ts  generatePath (HMAC float stream, float<0.5→L), slotFromPath (count R)
+│       └── plinkoEngine.ts   createRound, resolveDrop, computePayout/computeProfit
 ├── store/
 │   ├── gameStore.ts          Mines machine: IDLE→PLAYING→LOST|CASHED_OUT→IDLE; holds `balance`
-│   └── blackjackStore.ts     BJ machine: IDLE→PLAYER_TURN→DEALER_TURN→RESOLVED; uses shared wallet
+│   ├── blackjackStore.ts     BJ machine: IDLE→PLAYER_TURN→DEALER_TURN→RESOLVED; uses shared wallet
+│   └── plinkoStore.ts        Plinko: NO status machine — concurrent `balls[]`; uses shared wallet
 ├── audio/
 │   ├── AudioManager.ts       Web Audio singleton (preload, dedupe, play/stop, volume, mute)
 │   ├── soundStore.ts         persisted settings (safe localStorage wrapper); pushes into AudioManager
@@ -65,9 +72,11 @@ src/
 ├── hooks/
 │   ├── useSound.ts           { play, stop, stopAll } — components call play('id')
 │   ├── useMinesAudio.ts      store subscription → start/multiplier/cashout/game-over
-│   └── useBlackjackAudio.ts  store subscription → chip-bet/outcome
-├── components/ (+ layout/, blackjack/)
-├── pages/                    LobbyPage, GamePage (Mines), BlackjackPage
+│   ├── useBlackjackAudio.ts  store subscription → chip-bet/outcome
+│   └── usePlinkoAudio.ts     store subscription → ball-drop (per drop) / outcome (per land)
+├── components/ (+ layout/, blackjack/, plinko/)
+│   └── plinko/               geometry.ts (pure layout), PlinkoBoard, PlinkoBall, PlinkoControls, PlinkoResult
+├── pages/                    LobbyPage, GamePage (Mines), BlackjackPage, PlinkoPage
 └── utils/                    crypto.ts (hand-rolled sync SHA-256/HMAC), format.ts
 scripts/generate-sounds.mjs   regenerates placeholder SFX (node, no deps)
 ```
@@ -85,7 +94,10 @@ scripts/generate-sounds.mjs   regenerates placeholder SFX (node, no deps)
   - *State-driven* via read-only store subscriptions (`useMinesAudio`, `useBlackjackAudio`). Game logic was NOT modified to add sound.
 - **`Tile.picked`** distinguishes the player's actual clicks from the auto-reveal at round end (drives which tiles explode/glow/sound). `revealTile` sets it; `revealAll` preserves it.
 - **Blackjack hidden hole**: `dealerHoleHidden` controls the face-down 2nd dealer card; `selectDealerVisibleTotal` shows only the up-card until reveal.
-- **Money invariant** holds for both stores: across a resolved round, `Δbalance === reported profit`. Tests assert this over hundreds of random rounds — preserve it if you touch betting/payout.
+- **Plinko has NO status state machine** — unlike Mines/Blackjack. The store holds a `balls[]` array of in-flight balls; `drop()` is never locked (spam = one independent ball per click, each its own bet/nonce/path), and `land(id)` credits that ball's payout and removes only it. Balls fall and resolve simultaneously but independently. `setRows`/`setRisk` are no-ops while any ball is airborne (`selectConfigLocked`); the bet stays editable. Money invariant is the Σ-form: `Δbalance === Σ profit` across a burst.
+- **Plinko payout tables bake in the house edge** (Stake-style values in `payoutTables.ts`), unlike Mines which computes the edge live. Tables are symmetric, edge slots pay most. No extra edge multiply in the engine.
+- **Plinko ball is a real ballistic sim, not keyframes.** `PlinkoBall` runs a `requestAnimationFrame` integrator (gravity + restitution bounce off each peg); horizontal velocity per row is forced by the provably-fair L/R path so it deterministically lands in the engine's slot. The effect runs **once per ball** with `onLand`/`play` held in refs — depending on the `onLand` prop identity would restart every in-flight ball on each new click (the bug that broke spam). Reduced-motion snaps to the slot.
+- **Money invariant** holds for all three stores: across a resolved round (or burst), `Δbalance === reported profit`. Tests assert this over hundreds of random rounds — preserve it if you touch betting/payout.
 - **SSR caveat**: zustand `getServerSnapshot` returns the initial snapshot, so `renderToString` of a state-dependent component shows defaults. The app is a client SPA (never SSR'd). Test UI with `@testing-library/react` (client render), not `renderToString`.
 
 ---
@@ -118,7 +130,7 @@ When verifying in tests: spy `AudioManager.play` for sound triggers; use fake ti
 
 ## Likely next work (the obvious extension)
 
-Build one of the coming-soon games (Crash / Dice / Plinko). The pattern is fixed and proven:
+Build one of the coming-soon games (Crash / Dice). The pattern is fixed and proven (Plinko is the most recent worked example — engine → store → UI → route → audio):
 1. Flip its `status` to `'live'` in `config/games.tsx` (+ keep the icon).
 2. Pure engine in `src/game/<name>/`.
 3. Store in `src/store/<name>Store.ts` — use the shared wallet (`useGameStore` balance), guarded status machine, money invariant.

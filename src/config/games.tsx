@@ -16,6 +16,8 @@ export interface GameMeta {
   icon: ReactNode;
   /** Tailwind text/from color token used for the card's accent. */
   accent: string;
+  /** Raw hex of the accent — drives card glow/gradient (CSS, not a class). */
+  glow: string;
   status: GameStatus;
 }
 
@@ -27,6 +29,7 @@ export const GAMES: GameMeta[] = [
     description: 'Reveal gems, dodge the mines, cash out before you blow it.',
     icon: <MinesGlyph />,
     accent: 'text-accent',
+    glow: '#00e701',
     status: 'live',
   },
   {
@@ -36,6 +39,7 @@ export const GAMES: GameMeta[] = [
     description: 'Beat the dealer to 21. Hit, stand, or double down.',
     icon: <BlackjackGlyph />,
     accent: 'text-gold',
+    glow: '#ffd700',
     status: 'live',
   },
   {
@@ -45,6 +49,7 @@ export const GAMES: GameMeta[] = [
     description: 'Ride the multiplier and bail before it crashes.',
     icon: <CrashGlyph />,
     accent: 'text-danger',
+    glow: '#ed4163',
     status: 'soon',
   },
   {
@@ -54,6 +59,7 @@ export const GAMES: GameMeta[] = [
     description: 'Drop the ball and watch it bounce into a payout.',
     icon: <PlinkoGlyph />,
     accent: 'text-[#00c2ff]',
+    glow: '#00c2ff',
     status: 'live',
   },
   {
@@ -63,6 +69,7 @@ export const GAMES: GameMeta[] = [
     description: 'Pick a target, roll under, win instantly.',
     icon: <DiceGlyph />,
     accent: 'text-[#b388ff]',
+    glow: '#b388ff',
     status: 'soon',
   },
 ];

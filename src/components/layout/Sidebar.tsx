@@ -16,14 +16,19 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex h-full flex-col gap-6 p-4">
-      <NavLink to="/" onClick={onNavigate} className="flex items-center gap-2 px-1">
-        <span className="text-2xl">🎰</span>
-        <span className="text-lg font-bold tracking-tight">Casino</span>
+      <NavLink to="/" onClick={onNavigate} className="group flex items-center gap-2.5 px-1">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-accent to-cyan text-lg shadow-[0_0_20px_-2px] shadow-accent/50">
+          🎰
+        </span>
+        <span className="font-display text-xl font-bold tracking-tight">
+          Lucky<span className="text-accent">Bit</span>
+        </span>
       </NavLink>
 
-      <div className="rounded-xl bg-bg p-3 ring-1 ring-white/10">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-panel-light to-bg p-3 ring-1 ring-white/10">
+        <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-accent/20 blur-2xl" />
         <div className="text-[10px] font-medium uppercase tracking-wide text-muted">Balance</div>
-        <div className="mt-0.5 text-lg font-bold tabular-nums text-accent">
+        <div className="mt-0.5 font-display text-xl font-bold tabular-nums text-accent drop-shadow-[0_0_8px_rgba(0,231,1,0.35)]">
           {formatCurrency(balance)}
         </div>
       </div>
@@ -34,7 +39,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           end
           onClick={onNavigate}
           className={({ isActive }) =>
-            `${linkBase} ${isActive ? 'bg-panel-light text-white' : 'text-muted hover:bg-panel-light/50 hover:text-white'}`
+            `${linkBase} ${isActive ? 'bg-panel-light text-white ring-1 ring-white/10 shadow-[inset_2px_0_0] shadow-accent' : 'text-muted hover:bg-panel-light/50 hover:text-white'}`
           }
         >
           <span className="text-base">🏠</span> Lobby
@@ -64,7 +69,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               to={game.path}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `${linkBase} ${isActive ? 'bg-panel-light text-white' : 'text-muted hover:bg-panel-light/50 hover:text-white'}`
+                `${linkBase} ${isActive ? 'bg-panel-light text-white ring-1 ring-white/10 shadow-[inset_2px_0_0] shadow-accent' : 'text-muted hover:bg-panel-light/50 hover:text-white'}`
               }
             >
               {inner}
@@ -94,7 +99,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 /** Fixed desktop navigation rail. */
 export function Sidebar() {
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-white/5 bg-panel/40 lg:block">
+    <aside className="relative z-10 hidden w-64 shrink-0 border-r border-white/5 bg-panel/30 backdrop-blur-xl lg:block">
       <div className="sticky top-0 h-screen">
         <SidebarContent />
       </div>

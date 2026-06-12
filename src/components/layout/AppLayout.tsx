@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar, SidebarContent } from '@/components/layout/Sidebar';
+import { Background } from '@/components/layout/Background';
 import { SoundToggleButton } from '@/components/SoundToggleButton';
 import { AudioBootstrap } from '@/audio/AudioBootstrap';
 
@@ -13,13 +14,14 @@ export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-bg text-white">
+    <div className="relative isolate flex min-h-screen text-white">
+      <Background />
       <AudioBootstrap />
       <Sidebar />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="flex items-center gap-3 border-b border-white/5 bg-panel/40 px-4 py-3 lg:hidden">
+        <header className="flex items-center gap-3 border-b border-white/5 bg-panel/30 px-4 py-3 backdrop-blur-xl lg:hidden">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
@@ -28,8 +30,9 @@ export function AppLayout() {
           >
             ☰
           </button>
-          <span className="flex items-center gap-2 font-bold">
-            <span className="text-xl">🎰</span> Casino
+          <span className="flex items-center gap-2 font-display font-bold">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-accent to-cyan text-base">🎰</span>
+            Lucky<span className="-ml-1 text-accent">Bit</span>
           </span>
           <SoundToggleButton className="ml-auto" />
         </header>
