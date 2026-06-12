@@ -8,16 +8,18 @@ This is a **provably-fair play-money casino** (Vite + React 18 + TypeScript stri
 
 ## Current state (all green)
 
-- **211 tests pass** (`npm test`). Build green (`npm run build`).
-- Three complete games: **Mines**, **Blackjack**, **Plinko**, a **lobby** with sidebar nav (desktop rail + mobile drawer), and a **centralized audio system**.
-- Coming-soon placeholders: Crash, Dice (registry entries only, `status: 'soon'`).
+- **297 tests pass** (`npm test`). Build green (`npm run build`). Typecheck clean (`npm run typecheck`).
+- Four complete games: **Mines**, **Blackjack**, **Plinko**, **Crash**, a **lobby** with sidebar nav (desktop rail + mobile drawer), a **centralized audio system**, and a **movable session-stats widget** (cross-game PnL).
+- Coming-soon placeholder: Dice only (registry entry, `status: 'soon'`).
 
 ### What's done, in order built
 1. Mines: engine (`provablyFair`, `multiplier`, `minesEngine`), store, UI, animations, tests.
 2. Casino shell: React Router, lobby, sidebar nav, reusable `GameCard` + game registry.
 3. Blackjack: engine (`game/blackjack/*`), store (shared wallet), table UI, animations, tests.
-4. Audio: `AudioManager` (Web Audio singleton), persisted `soundStore`, manifest + 24 SFX, `useSound`, animation-synced + state-driven triggers in every game, sidebar settings panel, tests.
+4. Audio: `AudioManager` (Web Audio singleton), persisted `soundStore`, manifest + 26 SFX, `useSound`, animation-synced + state-driven triggers in every game, sidebar settings panel, tests.
 5. Plinko: pure engine (`game/plinko/*`), multi-ball store (shared wallet), real-physics board UI, route + registry, audio. See the Plinko section below.
+6. Crash: pure engine (`game/crash/*`), store (`IDLE→RUNNING→CASHED_OUT|CRASHED`), rAF clock hook, neon graph UI, route + registry (flipped to `live`), audio (2 new SFX). See the Crash section below.
+7. Session-stats widget: cross-game `statsStore`, read-only `useStatsRecorder` subscriptions, movable/poppable floating window with live PnL chart, per-game tabs, bet count, total wagered, reset. See the Stats widget section.
 
 ---
 
@@ -53,15 +55,21 @@ src/
 │       ├── cardUtils.ts      rankValue, calculateHandValue (ace logic), isBlackjack, isBust
 │       ├── deck.ts           createDeck, shuffleDeck(deck, rng?), dealCard
 │       └── blackjackEngine.ts dealInitial, dealerPlay, determineWinner, resolvePayout, canDoubleDown
-│   └── plinko/
-│       ├── types.ts          PlinkoRows(8|12|16)/PlinkoRisk(low|med|high)/Direction/Path/Round/Result
-│       ├── payoutTables.ts   PAYOUTS[risk][rows] (edge baked in), getMultipliers, getSlotMultiplier
-│       ├── pathGenerator.ts  generatePath (HMAC float stream, float<0.5→L), slotFromPath (count R)
-│       └── plinkoEngine.ts   createRound, resolveDrop, computePayout/computeProfit
+│   ├── plinko/
+│   │   ├── types.ts          PlinkoRows(8|12|16)/PlinkoRisk(low|med|high)/Direction/Path/Round/Result
+│   │   ├── payoutTables.ts   PAYOUTS[risk][rows] (edge baked in), getMultipliers, getSlotMultiplier
+│   │   ├── pathGenerator.ts  generatePath (HMAC float stream, float<0.5→L), slotFromPath (count R)
+│   │   └── plinkoEngine.ts   createRound, resolveDrop, computePayout/computeProfit
+│   └── crash/
+│       ├── types.ts          CrashStatus/CrashRound/CrashResult/CrashHistoryEntry; CRASH_HOUSE_EDGE, CRASH_GROWTH_RATE
+│       ├── crashPoint.ts     computeCrashPoint (HMAC 52-bit closed form), verifyCrash
+│       └── crashEngine.ts    createRound, multiplierAt/timeToMultiplier (e^0.06s curve), resolveCashOut/resolveCrash
 ├── store/
 │   ├── gameStore.ts          Mines machine: IDLE→PLAYING→LOST|CASHED_OUT→IDLE; holds `balance`
 │   ├── blackjackStore.ts     BJ machine: IDLE→PLAYER_TURN→DEALER_TURN→RESOLVED; uses shared wallet
-│   └── plinkoStore.ts        Plinko: NO status machine — concurrent `balls[]`; uses shared wallet
+│   ├── plinkoStore.ts        Plinko: NO status machine — concurrent `balls[]`; uses shared wallet
+│   ├── crashStore.ts         Crash machine: IDLE→RUNNING→CASHED_OUT|CRASHED→IDLE; uses shared wallet
+│   └── statsStore.ts         Cross-game session stats (perGame bets/wagered/pnl + cumulative PnL series); owns NO money
 ├── audio/
 │   ├── AudioManager.ts       Web Audio singleton (preload, dedupe, play/stop, volume, mute)
 │   ├── soundStore.ts         persisted settings (safe localStorage wrapper); pushes into AudioManager
@@ -73,12 +81,17 @@ src/
 │   ├── useSound.ts           { play, stop, stopAll } — components call play('id')
 │   ├── useMinesAudio.ts      store subscription → start/multiplier/cashout/game-over
 │   ├── useBlackjackAudio.ts  store subscription → chip-bet/outcome
-│   └── usePlinkoAudio.ts     store subscription → ball-drop (per drop) / outcome (per land)
-├── components/ (+ layout/, blackjack/, plinko/)
-│   └── plinko/               geometry.ts (pure layout), PlinkoBoard, PlinkoBall, PlinkoControls, PlinkoResult
-├── pages/                    LobbyPage, GamePage (Mines), BlackjackPage, PlinkoPage
+│   ├── usePlinkoAudio.ts     store subscription → ball-drop (per drop) / outcome (per land)
+│   ├── useCrashAudio.ts      store subscription → crash-start / tick-up / cashout|big-win / explosion
+│   ├── useCrashClock.ts      rAF loop while RUNNING → feeds elapsed ms to crashStore.tick
+│   └── useStatsRecorder.ts   read-only subs to ALL game stores → records wagers/settlements into statsStore
+├── components/ (+ layout/, blackjack/, plinko/, crash/, stats/)
+│   ├── plinko/               geometry.ts (pure layout), PlinkoBoard, PlinkoBall, PlinkoControls, PlinkoResult
+│   ├── crash/                curve.ts (pure graph geometry), CrashGraph, CrashMultiplier, CrashControls, CrashHistory, CrashResult
+│   └── stats/                sparkline.ts (pure), StatsChart, StatsWidget (movable floating window)
+├── pages/                    LobbyPage, GamePage (Mines), BlackjackPage, PlinkoPage, CrashPage
 └── utils/                    crypto.ts (hand-rolled sync SHA-256/HMAC), format.ts
-scripts/generate-sounds.mjs   regenerates placeholder SFX (node, no deps)
+scripts/generate-sounds.mjs   regenerates placeholder SFX (node, no deps) — 26 sounds incl crash-start/tick-up
 ```
 
 ---
@@ -111,10 +124,33 @@ The app was reskinned from a flat dark UI to a **neon-noir** look. All changes a
 - **Plinko has NO status state machine** — unlike Mines/Blackjack. The store holds a `balls[]` array of in-flight balls; `drop()` is never locked (spam = one independent ball per click, each its own bet/nonce/path), and `land(id)` credits that ball's payout and removes only it. Balls fall and resolve simultaneously but independently. `setRows`/`setRisk` are no-ops while any ball is airborne (`selectConfigLocked`); the bet stays editable. Money invariant is the Σ-form: `Δbalance === Σ profit` across a burst.
 - **Plinko payout tables bake in the house edge** (Stake-style values in `payoutTables.ts`), unlike Mines which computes the edge live. Tables are symmetric, edge slots pay most. No extra edge multiply in the engine.
 - **Plinko ball is a real ballistic sim, not keyframes.** `PlinkoBall` runs a `requestAnimationFrame` integrator (gravity + restitution bounce off each peg); horizontal velocity per row is forced by the provably-fair L/R path so it deterministically lands in the engine's slot. The effect runs **once per ball** with `onLand`/`play` held in refs — depending on the `onLand` prop identity would restart every in-flight ball on each new click (the bug that broke spam). Reduced-motion snaps to the slot.
-- **Money invariant** holds for all three stores: across a resolved round (or burst), `Δbalance === reported profit`. Tests assert this over hundreds of random rounds — preserve it if you touch betting/payout.
+- **Crash point is the standard bustabit/Stake closed form** (`crashPoint.ts`, fully documented): `H` = first 52 bits of `HMAC(serverSeed, "client:nonce")`, `raw = (2^52 / (2^52 − H)) × (1 − edge)`, floored to cents, clamped ≥ 1.00. Gives `P(crash > m) = 0.99/m` → **RTP 99%** at any cash-out target, with the 1% edge as instant-bust mass. NOTE: cents-flooring rounds everything in `[1.00, 1.01)` down to 1.00×, so the *displayed* instant-bust rate is ~1.98% while the *economic* edge stays exactly 1% (the RTP distribution test confirms). Don't "fix" the ~2% — it's flooring, not a bug.
+- **Crash point is fixed at round start from the seeds — NEVER from elapsed time.** The rising number is cosmetic pacing only (`multiplierAt(t) = e^(0.06·s)`, tuned Stake-like). `crashStore.tick(elapsedMs)` is the ONLY place a round busts (when `multiplierAt ≥ crashPoint`), so while RUNNING `currentMultiplier < crashPoint` is invariant and `cashOut` is always race-free (`resolveCashOut` needs no crash-point guard — by design).
+- **Crash clock is a hook, not the store/engine.** `useCrashClock` runs a `requestAnimationFrame` loop while RUNNING, feeds `performance.now() − startedAt` into `tick`, and stops the instant `tick` flips out of RUNNING. Same "motion in a hook, truth in store/engine" split as `PlinkoBall`. Reduced-motion does NOT disable the clock (the rising number is gameplay), only decorative animations.
+- **Stats widget records via read-only subscriptions, not by editing game stores.** `useStatsRecorder` (mounted once in `AppLayout`) subscribes to all four game stores and emits `recordWager`/`recordSettle` into `statsStore` on settlement transitions — exactly like the audio hooks. NO game logic was modified for stats. Stake capture per game: Mines on `PLAYING→CASHED_OUT|LOST` (loss profit = `−bet`); Blackjack on `→RESOLVED` using live `bet` so double-downs count 2× (with `betAmount` fallback for the natural-blackjack set-ordering); Plinko wager-per-drop + profit-per-land (concurrent balls, no per-ball stake in its result); Crash on `RUNNING→CASHED_OUT|CRASHED`.
+- **`statsStore` owns NO money** — `balance` still lives in `gameStore`. Resetting stats (↺ in the widget) clears the session view only; it does not touch the wallet. PnL is the sum of recorded settled profits, so with no reset it tracks `balance − DEFAULT_BALANCE`.
+- **GOTCHA — never use an object-allocating selector as a reactive zustand selector.** `computeScopeStat(perGame, 'all')` builds a fresh `{bets,wagered,pnl}` each call; using it as `useStatsStore(selectScopeStat('all'))` caused a "Maximum update depth exceeded" infinite loop (new object identity every render → `useSyncExternalStore` re-renders forever). Fix in `StatsWidget`: select the stable `perGame` slice, aggregate via `useMemo`. Series selectors are safe — they return the stored array reference.
+- **Money invariant** holds for all four game stores: across a resolved round (or burst), `Δbalance === reported profit`. Tests assert this over hundreds of random rounds — preserve it if you touch betting/payout.
 - **SSR caveat**: zustand `getServerSnapshot` returns the initial snapshot, so `renderToString` of a state-dependent component shows defaults. The app is a client SPA (never SSR'd). Test UI with `@testing-library/react` (client render), not `renderToString`.
 
 ---
+
+## Crash
+
+Stake-style crash. Player bets, presses Start; the multiplier rises from 1.00× on a `requestAnimationFrame` clock; cash out any time before the hidden crash point or lose the stake.
+
+- **Engine** (`game/crash/*`, pure): `computeCrashPoint`/`verifyCrash` (provably fair, RTP 99%), `createRound`, `multiplierAt`/`timeToMultiplier` (`e^0.06s` curve), `resolveCashOut`/`resolveCrash`. Reuses `hmacSha256Hex`/`hashServerSeed` and the shared `ProvablyFairSeeds`/`ProvablyFairCommitment` types — no new crypto, no duplicate types.
+- **Store** (`crashStore.ts`): `IDLE → RUNNING → CASHED_OUT | CRASHED → IDLE`, shared wallet, guarded no-ops, capped `history[]`. `tick` is the sole bust trigger. Money invariant over 300 random rounds.
+- **UI** (`components/crash/*`): `CrashGraph` (neon SVG curve + area fill + live tip, crash shake), `CrashMultiplier`, `CrashControls` (one morphing button: Start → Cash Out · $payout → Next Round), `CrashHistory`, `CrashResult`. `curve.ts` is pure graph geometry. `CrashPage` mounts `useCrashClock` + `useCrashAudio`.
+- **Audio**: reuses `cashout`/`explosion`/`big-win`, adds `crash-start` + `tick-up` (whole-number milestones). State-driven via `useCrashAudio`.
+
+## Session-stats widget
+
+Movable, pop-in/out floating window (📊 launcher ↔ window, drag by the header) showing live cross-game PnL. Mounted once in `AppLayout`.
+
+- **`statsStore`**: per-game `{ bets, wagered, pnl }` + capped cumulative-PnL `series` per scope (`all` + each game). Two entry points: `recordWager`, `recordSettle`. `reset()` clears the session (not the wallet). Owns no money.
+- **`useStatsRecorder`**: read-only subscriptions to all four game stores → emits wagers/settlements. No game-logic edits (see gotchas for per-game stake capture).
+- **UI** (`components/stats/*`): `StatsWidget` (drag via pointer-capture, scope tabs, big PnL, Bets / Total wagered / Avg-per-bet, ↺ reset, ✕ close), `StatsChart` (live sparkline), `sparkline.ts` (pure geometry). Reactive aggregation memoised over the stable `perGame` slice (see the zustand-selector gotcha).
 
 ## Conventions
 
@@ -132,10 +168,10 @@ The app was reskinned from a flat dark UI to a **neon-noir** look. All changes a
 ```bash
 npm run dev            # http://localhost:5173
 npm run build          # tsc -b + vite build (must stay green)
-npm test               # 158 tests
+npm test               # 297 tests
 npm run test:coverage  # text + HTML coverage
 npm run typecheck      # strict, no emit
-node scripts/generate-sounds.mjs   # regenerate placeholder SFX
+node scripts/generate-sounds.mjs   # regenerate placeholder SFX (26 sounds)
 ```
 
 When verifying in tests: spy `AudioManager.play` for sound triggers; use fake timers for delayed cues (`game-over` +350ms, BJ outcome +250ms). Reset the singleton stores in `beforeEach`.
@@ -144,7 +180,7 @@ When verifying in tests: spy `AudioManager.play` for sound triggers; use fake ti
 
 ## Likely next work (the obvious extension)
 
-Build one of the coming-soon games (Crash / Dice). The pattern is fixed and proven (Plinko is the most recent worked example — engine → store → UI → route → audio):
+Build the remaining coming-soon game (**Dice**). The pattern is fixed and proven (Crash is the most recent worked example — engine → store → UI → route → audio, built across 7 approved phases):
 1. Flip its `status` to `'live'` in `config/games.tsx` (+ keep the icon).
 2. Pure engine in `src/game/<name>/`.
 3. Store in `src/store/<name>Store.ts` — use the shared wallet (`useGameStore` balance), guarded status machine, money invariant.

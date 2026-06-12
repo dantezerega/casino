@@ -50,7 +50,7 @@ export const GAMES: GameMeta[] = [
     icon: <CrashGlyph />,
     accent: 'text-danger',
     glow: '#ed4163',
-    status: 'soon',
+    status: 'live',
   },
   {
     id: 'plinko',

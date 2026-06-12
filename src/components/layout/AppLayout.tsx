@@ -5,6 +5,8 @@ import { Sidebar, SidebarContent } from '@/components/layout/Sidebar';
 import { Background } from '@/components/layout/Background';
 import { SoundToggleButton } from '@/components/SoundToggleButton';
 import { AudioBootstrap } from '@/audio/AudioBootstrap';
+import { StatsWidget } from '@/components/stats/StatsWidget';
+import { useStatsRecorder } from '@/hooks/useStatsRecorder';
 
 /**
  * App shell: fixed sidebar on desktop, slide-in drawer on mobile. Page content
@@ -12,12 +14,14 @@ import { AudioBootstrap } from '@/audio/AudioBootstrap';
  */
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  useStatsRecorder();
 
   return (
     <div className="relative isolate flex min-h-screen text-white">
       <Background />
       <AudioBootstrap />
       <Sidebar />
+      <StatsWidget />
 
       <div className="relative z-10 flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}

@@ -24,9 +24,17 @@ export type BlackjackSound =
 
 export type PlinkoSound = 'ball-drop' | 'peg-hit' | 'slot-land' | 'big-win';
 
+export type CrashSound = 'crash-start' | 'tick-up';
+
 export type CasinoSound = 'notification' | 'bonus' | 'achievement';
 
-export type SoundName = UISound | MinesSound | BlackjackSound | PlinkoSound | CasinoSound;
+export type SoundName =
+  | UISound
+  | MinesSound
+  | BlackjackSound
+  | PlinkoSound
+  | CrashSound
+  | CasinoSound;
 
 /** One manifest entry: the asset URL plus an optional per-sound volume trim. */
 export interface SoundDef {

@@ -4,6 +4,7 @@ import { LobbyPage } from '@/pages/LobbyPage';
 import { GamePage } from '@/pages/GamePage';
 import { BlackjackPage } from '@/pages/BlackjackPage';
 import { PlinkoPage } from '@/pages/PlinkoPage';
+import { CrashPage } from '@/pages/CrashPage';
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,7 @@ const router = createBrowserRouter([
       { path: '/mines', element: <GamePage /> },
       { path: '/blackjack', element: <BlackjackPage /> },
       { path: '/plinko', element: <PlinkoPage /> },
+      { path: '/crash', element: <CrashPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

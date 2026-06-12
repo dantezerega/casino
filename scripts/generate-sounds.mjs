@@ -121,6 +121,9 @@ const SOUNDS = {
   'peg-hit': () => tone({ f0: 1400, dur: 0.03, type: 'square', vol: 0.12, r: 0.02 }),
   'slot-land': () => mix(noise({ dur: 0.08, vol: 0.3, r: 0.06, lp: 0.2 }), tone({ f0: 200, dur: 0.1, type: 'tri', vol: 0.2 })),
   'big-win': () => arp([523, 659, 784, 1047, 1319, 1568], 0.07, 0.2, 0.32, 'tri'),
+  // Crash
+  'crash-start': () => mix(noise({ dur: 0.3, vol: 0.18, r: 0.26, lp: 0.25 }), tone({ f0: 180, f1: 620, dur: 0.3, type: 'saw', vol: 0.22 })),
+  'tick-up': () => tone({ f0: 900, f1: 1050, dur: 0.04, type: 'square', vol: 0.12, r: 0.03 }),
   // Casino
   notification: () => arp([880, 1320], 0.1, 0.12, 0.25, 'sine'),
   bonus: () => arp([523, 659, 784, 1047, 1319], 0.06, 0.14, 0.28, 'sine'),

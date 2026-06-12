@@ -35,6 +35,9 @@ import ballDrop from './sounds/ball-drop.wav';
 import pegHit from './sounds/peg-hit.wav';
 import slotLand from './sounds/slot-land.wav';
 import bigWin from './sounds/big-win.wav';
+// Crash
+import crashStart from './sounds/crash-start.wav';
+import tickUp from './sounds/tick-up.wav';
 // Casino
 import notification from './sounds/notification.wav';
 import bonus from './sounds/bonus.wav';
@@ -65,6 +68,9 @@ export const SOUND_MANIFEST: Record<SoundName, SoundDef> = {
   'peg-hit': { src: pegHit, volume: 0.35 },
   'slot-land': { src: slotLand, volume: 0.7 },
   'big-win': { src: bigWin, volume: 1 },
+
+  'crash-start': { src: crashStart, volume: 0.7 },
+  'tick-up': { src: tickUp, volume: 0.45 },
 
   notification: { src: notification, volume: 0.7 },
   bonus: { src: bonus, volume: 0.8 },
