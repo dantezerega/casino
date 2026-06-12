@@ -83,6 +83,20 @@ scripts/generate-sounds.mjs   regenerates placeholder SFX (node, no deps)
 
 ---
 
+## Visual design / theme (added after initial build)
+
+The app was reskinned from a flat dark UI to a **neon-noir** look. All changes are UI-only — no logic, store, or money-invariant impact.
+
+- **Brand name is "LuckyBit"** (sidebar + mobile top bar). Was generic "Casino".
+- **Two fonts** (`index.css`): body `Inter`, display `Space Grotesk` (`--font-display`, used via `font-display`) for headings + numbers. Loaded from Google Fonts `@import` in `index.css`.
+- **Palette** (`@theme` in `index.css`): deeper base (`--color-bg-deep: #05080d`), plus `--color-cyan` and `--color-violet` tokens. Old tokens kept.
+- **Ambient animated background**: `src/components/layout/Background.tsx` renders two fixed, `pointer-events-none`, `z-0` layers — `.app-bg` (3 radial aurora gradients + 2 drifting blurred orbs via `orb-a`/`orb-b` keyframes) and `.app-bg-grid` (masked dotted grid). Defined in `index.css`. Mounted once in `AppLayout`, which is now `relative isolate`; sidebar + content are `z-10` to sit above it. `prefers-reduced-motion` disables the animations (CSS media query).
+- **Game cards carry per-game glow**: `GameMeta` gained a required `glow: string` (raw hex of the accent — NOT a class; classes can't be interpolated). `GameCard` sets it as a `--glow` CSS var for corner wash + hover ring/shadow in each game's color. **Adding a game now requires a `glow` hex in the registry entry.**
+- **Lobby hero** (`LobbyPage`): shimmer gradient headline (`.text-shimmer`), "Provably fair" pill, glow orbs, live-game/fairness stat chips.
+- Sidebar is now a glass panel (`backdrop-blur-xl`) with gradient logo tile, glowing balance card, and an inset accent bar on the active nav link.
+
+---
+
 ## Non-obvious decisions / gotchas
 
 - **Mines multiplier is intentionally fair-odds.** `multiplier = (1 - houseEdge) / P(survival)`, `houseEdge = 0.01`. So 1 mine / 24 picks = **24.75×** (24.75 = 25 × 0.99). This was questioned as a bug and confirmed CORRECT by the user — they chose to keep the 1% edge. Do not "fix" it. Low-mine curves are near-flat early then spike; that's correct, not a bug.
