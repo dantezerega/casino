@@ -8,28 +8,30 @@ import {
 } from '@/store/plinkoStore';
 import { useGameStore } from '@/store/gameStore';
 
+const dropButton = () => screen.getByRole('button', { name: /^Drop/ });
+
 beforeEach(() => {
   useGameStore.setState({ balance: 1000 });
   usePlinkoStore.setState({
-    status: 'IDLE',
     betAmount: 10,
     rows: DEFAULT_PLINKO_ROWS,
     risk: DEFAULT_PLINKO_RISK,
-    bet: 0,
-    profit: 0,
-    round: null,
-    result: null,
+    balls: [],
+    lastResult: null,
+    resolvedCount: 0,
+    dropCount: 0,
     commitment: null,
     clientSeed: 'client',
     nonce: 0,
+    nextId: 0,
   });
 });
 afterEach(cleanup);
 
 describe('PlinkoControls', () => {
-  it('renders Drop while idle', () => {
+  it('renders a Drop button', () => {
     render(<PlinkoControls />);
-    expect(screen.getByRole('button', { name: 'Drop' })).toBeInTheDocument();
+    expect(dropButton()).toBeInTheDocument();
   });
 
   it('selecting risk and rows updates the store', () => {
@@ -40,23 +42,26 @@ describe('PlinkoControls', () => {
     expect(usePlinkoStore.getState().rows).toBe(8);
   });
 
-  it('drop moves the machine to DROPPING and deducts the stake', () => {
+  it('can be spammed — each click stacks another ball and deducts a stake', () => {
     render(<PlinkoControls />);
-    fireEvent.click(screen.getByRole('button', { name: 'Drop' }));
-    expect(usePlinkoStore.getState().status).toBe('DROPPING');
-    expect(useGameStore.getState().balance).toBe(990);
+    fireEvent.click(dropButton());
+    fireEvent.click(dropButton());
+    fireEvent.click(dropButton());
+    expect(usePlinkoStore.getState().balls).toHaveLength(3);
+    expect(useGameStore.getState().balance).toBe(970);
+    expect(dropButton()).toHaveTextContent('3 in play');
   });
 
-  it('locks selectors and the button while dropping', () => {
-    usePlinkoStore.setState({ status: 'DROPPING' });
+  it('locks rows/risk while balls are airborne but keeps Drop enabled', () => {
     render(<PlinkoControls />);
-    expect(screen.getByRole('button', { name: 'Dropping…' })).toBeDisabled();
+    fireEvent.click(dropButton());
     expect(screen.getByRole('button', { name: 'High' })).toBeDisabled();
+    expect(dropButton()).not.toBeDisabled();
   });
 
   it('disables Drop when the bet exceeds the balance', () => {
     usePlinkoStore.setState({ betAmount: 99999 });
     render(<PlinkoControls />);
-    expect(screen.getByRole('button', { name: 'Drop' })).toBeDisabled();
+    expect(dropButton()).toBeDisabled();
   });
 });

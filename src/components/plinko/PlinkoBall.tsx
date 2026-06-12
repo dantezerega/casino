@@ -4,8 +4,8 @@ import type { PlinkoPath, PlinkoRows } from '@/game/plinko/types';
 import { useSound } from '@/hooks/useSound';
 import { BALL_R, ballWaypoints } from '@/components/plinko/geometry';
 
-const GRAVITY = 1100;
-const RESTITUTION = 0.55;
+const GRAVITY = 3200;
+const RESTITUTION = 0.5;
 
 interface Segment {
   x0: number;

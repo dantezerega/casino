@@ -26,17 +26,17 @@ beforeEach(() => {
   playSpy = vi.spyOn(AudioManager, 'play').mockImplementation(() => {});
   useGameStore.setState({ balance: 1000 });
   usePlinkoStore.setState({
-    status: 'IDLE',
     betAmount: 10,
     rows: DEFAULT_PLINKO_ROWS,
     risk: DEFAULT_PLINKO_RISK,
-    bet: 0,
-    profit: 0,
-    round: null,
-    result: null,
+    balls: [],
+    lastResult: null,
+    resolvedCount: 0,
+    dropCount: 0,
     commitment: null,
     clientSeed: 'client',
     nonce: 0,
+    nextId: 0,
   });
 });
 afterEach(() => {
@@ -45,13 +45,14 @@ afterEach(() => {
 });
 
 describe('Plinko audio triggers', () => {
-  it('plays ball-drop when a drop begins', () => {
+  it('plays ball-drop on every drop (spammable)', () => {
     render(<Host />);
     usePlinkoStore.getState().drop();
-    expect(names()).toContain('ball-drop');
+    usePlinkoStore.getState().drop();
+    expect(names().filter((n) => n === 'ball-drop')).toHaveLength(2);
   });
 
-  it('maps the resolved result to its sound', () => {
+  it('maps each landed result to its sound', () => {
     render(<Host />);
     const cases: Array<[PlinkoResult, string]> = [
       [result(29, 280), 'big-win'],
@@ -59,10 +60,11 @@ describe('Plinko audio triggers', () => {
       [result(0.2, -8), 'lose'],
       [result(1, 0), 'slot-land'],
     ];
+    let count = 0;
     for (const [res, sound] of cases) {
-      usePlinkoStore.setState({ status: 'DROPPING', result: res });
       playSpy.mockClear();
-      usePlinkoStore.getState().resolve();
+      count += 1;
+      usePlinkoStore.setState({ lastResult: res, resolvedCount: count });
       expect(names()).toContain(sound);
     }
   });

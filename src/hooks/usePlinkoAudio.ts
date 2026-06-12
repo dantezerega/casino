@@ -12,12 +12,12 @@ export function usePlinkoAudio(): void {
     let prev = usePlinkoStore.getState();
 
     const unsub = usePlinkoStore.subscribe((s) => {
-      if (prev.status !== 'DROPPING' && s.status === 'DROPPING') {
+      if (s.dropCount > prev.dropCount) {
         play('ball-drop');
       }
 
-      if (prev.status === 'DROPPING' && s.status === 'RESOLVED' && s.result) {
-        const { multiplier, profit } = s.result;
+      if (s.resolvedCount > prev.resolvedCount && s.lastResult) {
+        const { multiplier, profit } = s.lastResult;
         const sound: SoundName =
           multiplier >= BIG_WIN_MULTIPLIER
             ? 'big-win'

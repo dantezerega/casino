@@ -24,17 +24,16 @@ const labelFor = (m: number): string => `${m}×`;
 
 export function PlinkoBoard() {
   const rows = usePlinkoStore((s) => s.rows);
-  const status = usePlinkoStore((s) => s.status);
-  const result = usePlinkoStore((s) => s.result);
-  const nonce = usePlinkoStore((s) => s.nonce);
-  const resolve = usePlinkoStore((s) => s.resolve);
+  const balls = usePlinkoStore((s) => s.balls);
+  const lastResult = usePlinkoStore((s) => s.lastResult);
+  const land = usePlinkoStore((s) => s.land);
   const multipliers = usePlinkoStore(selectMultipliers);
 
   const width = boardWidth(rows);
   const height = boardHeight(rows);
   const pegs = pegRows(rows);
   const sw = slotWidth();
-  const landedSlot = status === 'RESOLVED' && result ? result.slot : null;
+  const landedSlot = lastResult?.slot ?? null;
 
   return (
     <div className="w-full overflow-hidden rounded-xl bg-[radial-gradient(ellipse_at_top,#1c3142_0%,#13212e_70%)] p-3 ring-1 ring-white/5 sm:p-5">
@@ -44,8 +43,8 @@ export function PlinkoBoard() {
         className="block h-auto w-full"
         role="img"
         aria-label={`Plinko board, ${rows} rows`}
-        data-status={status}
-        data-slot={result?.slot ?? ''}
+        data-active-balls={balls.length}
+        data-slot={lastResult?.slot ?? ''}
       >
         {pegs.map((row, r) =>
           row.map((p, k) => (
@@ -85,9 +84,9 @@ export function PlinkoBoard() {
           );
         })}
 
-        {result && status !== 'IDLE' && (
-          <PlinkoBall key={nonce} path={result.path} rows={rows} onLand={resolve} />
-        )}
+        {balls.map((b) => (
+          <PlinkoBall key={b.id} path={b.path} rows={b.rows} onLand={() => land(b.id)} />
+        ))}
       </svg>
     </div>
   );

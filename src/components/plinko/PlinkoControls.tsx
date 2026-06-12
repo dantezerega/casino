@@ -1,5 +1,5 @@
 import { useGameStore } from '@/store/gameStore';
-import { usePlinkoStore, selectCanDrop } from '@/store/plinkoStore';
+import { usePlinkoStore, selectCanDrop, selectConfigLocked } from '@/store/plinkoStore';
 import { PLINKO_ROWS, PLINKO_RISKS, type PlinkoRisk, type PlinkoRows } from '@/game/plinko/types';
 
 const RISK_LABEL: Record<PlinkoRisk, string> = {
@@ -8,7 +8,7 @@ const RISK_LABEL: Record<PlinkoRisk, string> = {
   high: 'High',
 };
 
-function BetField({ locked }: { locked: boolean }) {
+function BetField() {
   const betAmount = usePlinkoStore((s) => s.betAmount);
   const setBetAmount = usePlinkoStore((s) => s.setBetAmount);
   const balance = useGameStore((s) => s.balance);
@@ -26,24 +26,21 @@ function BetField({ locked }: { locked: boolean }) {
           step="0.01"
           inputMode="decimal"
           value={betAmount}
-          disabled={locked}
           onChange={(e) => setBetAmount(e.currentTarget.valueAsNumber)}
-          className="w-full bg-transparent px-3 py-2 text-sm font-semibold tabular-nums outline-none disabled:opacity-60"
+          className="w-full bg-transparent px-3 py-2 text-sm font-semibold tabular-nums outline-none"
         />
         <button
           type="button"
-          disabled={locked}
           onClick={() => clamp(betAmount / 2)}
-          className="px-3 text-xs font-semibold text-muted transition-colors hover:text-white disabled:opacity-40"
+          className="px-3 text-xs font-semibold text-muted transition-colors hover:text-white"
         >
           ½
         </button>
         <span className="my-2 w-px bg-white/10" />
         <button
           type="button"
-          disabled={locked}
           onClick={() => clamp(betAmount * 2)}
-          className="px-3 text-xs font-semibold text-muted transition-colors hover:text-white disabled:opacity-40"
+          className="px-3 text-xs font-semibold text-muted transition-colors hover:text-white"
         >
           2×
         </button>
@@ -107,24 +104,23 @@ function RowsSelector({ locked }: { locked: boolean }) {
 }
 
 export function PlinkoControls() {
-  const status = usePlinkoStore((s) => s.status);
   const drop = usePlinkoStore((s) => s.drop);
   const canDrop = usePlinkoStore(selectCanDrop);
-
-  const dropping = status === 'DROPPING';
+  const locked = usePlinkoStore(selectConfigLocked);
+  const active = usePlinkoStore((s) => s.balls.length);
 
   return (
     <div className="flex flex-col gap-3 rounded-xl bg-panel p-4">
-      <BetField locked={dropping} />
-      <RiskSelector locked={dropping} />
-      <RowsSelector locked={dropping} />
+      <BetField />
+      <RiskSelector locked={locked} />
+      <RowsSelector locked={locked} />
       <button
         type="button"
         onClick={drop}
         disabled={!canDrop}
         className="mt-1 rounded-md bg-accent px-4 py-3 text-sm font-bold text-black transition-[filter] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {dropping ? 'Dropping…' : status === 'RESOLVED' ? 'Drop Again' : 'Drop'}
+        Drop{active > 0 ? ` · ${active} in play` : ''}
       </button>
     </div>
   );
